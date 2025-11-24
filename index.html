@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAC Analysis Tool | RocketSaaS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f5;
+            color: #1a1a1a;
+            line-height: 1.5;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 32px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .controls {
+            background: #fff;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #444;
+        }
+
+        .control-group input,
+        .control-group select {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            outline: none;
+            border-color: #1a1a1a;
+        }
+
+        .threshold-display {
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .threshold-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .threshold-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 13px;
+            color: #444;
+            cursor: pointer;
+        }
+
+        .options-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .results {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .results-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .results-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .results-count {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .selection-count {
+            font-size: 13px;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #fafafa;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        th:first-child {
+            width: 50px;
+        }
+
+        td {
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        tr.deselected {
+            opacity: 0.4;
+        }
+
+        .industry-name {
+            font-weight: 500;
+        }
+
+        .cac-value {
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .ratio-value {
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-green {
+            background: #e6f4ea;
+            color: #1e7e34;
+        }
+
+        .status-amber {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .status-red {
+            background: #fce8e8;
+            color: #c62828;
+        }
+
+        .status-grey {
+            background: #f0f0f0;
+            color: #888;
+        }
+
+        .na-text {
+            color: #aaa;
+            font-style: italic;
+        }
+
+        .legend {
+            display: flex;
+            gap: 24px;
+            padding: 16px 24px;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .legend-dot.green { background: #1e7e34; }
+        .legend-dot.amber { background: #e65100; }
+        .legend-dot.red { background: #c62828; }
+
+        .btn {
+            padding: 8px 16px;
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #333;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #1a1a1a;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f5f5;
+        }
+
+        .empty-state {
+            padding: 48px;
+            text-align: center;
+            color: #888;
+        }
+
+        .row-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .select-all-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            th, td {
+                padding: 10px 12px;
+            }
+
+            .legend {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CAC Analysis Tool</h1>
+            <p class="subtitle">Assess industry targeting viability based on client unit economics</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="ltv">Client LTV ($)</label>
+                <input type="number" id="ltv" placeholder="e.g. 1200" value="1200">
+            </div>
+
+            <div class="control-group">
+                <label for="companySize">Company Size Filter</label>
+                <select id="companySize">
+                    <option value="SMB">SMB</option>
+                    <option value="Consumer">Consumer</option>
+                    <option value="Middle Market">Middle Market</option>
+                    <option value="Enterprise">Enterprise</option>
+                </select>
+            </div>
+
+            <div class="threshold-display">
+                <span class="threshold-label">CAC Threshold (LTV ÷ 3)</span>
+                <span class="threshold-value" id="thresholdValue">$400</span>
+            </div>
+
+            <div class="options-row">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="hideNA" checked>
+                    <label for="hideNA">Hide N/A industries</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="sortByCAC" checked>
+                    <label for="sortByCAC">Sort by CAC (lowest first)</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="results">
+            <div class="results-header">
+                <h2>Industry Analysis</h2>
+                <div class="header-actions">
+                    <span class="selection-count" id="selectionCount">28 selected</span>
+                    <button class="btn btn-secondary" onclick="toggleSelectAll()">Deselect All</button>
+                    <button class="btn" onclick="copyToClipboard()">Copy Selected</button>
+                </div>
+            </div>
+
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAllCheckbox" class="row-checkbox" checked onchange="toggleSelectAll()">
+                        </th>
+                        <th>Industry</th>
+                        <th>CAC</th>
+                        <th>LTV:CAC Ratio</th>
+                        <th>Verdict</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot green"></div>
+                    <span>Prioritise (CAC under threshold)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot amber"></div>
+                    <span>Test selectively (within 25% of threshold)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot red"></div>
+                    <span>Avoid or organic only (over threshold)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cacData = [
+            { industry: "Agtech", Consumer: 243, SMB: 612, "Middle Market": 1823, Enterprise: 6948 },
+            { industry: "Adtech", Consumer: null, SMB: 560, "Middle Market": 2208, Enterprise: 8548 },
+            { industry: "Automotive", Consumer: 141, SMB: 378, "Middle Market": 2655, Enterprise: 6419 },
+            { industry: "Aviation & Defense", Consumer: 290, SMB: 509, "Middle Market": 3570, Enterprise: 7990 },
+            { industry: "Building Management & IoT", Consumer: 206, SMB: 574, "Middle Market": 2109, Enterprise: 7305 },
+            { industry: "Business Services", Consumer: 228, SMB: 585, "Middle Market": 4438, Enterprise: 7247 },
+            { industry: "Chemical & Pharmaceutical", Consumer: 275, SMB: 816, "Middle Market": 3565, Enterprise: 6018 },
+            { industry: "Cleantech", Consumer: null, SMB: 674, "Middle Market": 2368, Enterprise: 7321 },
+            { industry: "Construction", Consumer: 165, SMB: 610, "Middle Market": 4419, Enterprise: 7920 },
+            { industry: "Design", Consumer: 274, SMB: 658, "Middle Market": 1501, Enterprise: 5866 },
+            { industry: "eCommerce", Consumer: 64, SMB: 274, "Middle Market": 1406, Enterprise: 2190 },
+            { industry: "Education", Consumer: 264, SMB: 806, "Middle Market": 2814, Enterprise: 6659 },
+            { industry: "Entertainment", Consumer: 178, SMB: 473, "Middle Market": 2890, Enterprise: 5216 },
+            { industry: "Engineering", Consumer: null, SMB: 551, "Middle Market": 2383, Enterprise: 5906 },
+            { industry: "Fintech", Consumer: 202, SMB: 1450, "Middle Market": 4903, Enterprise: 14772 },
+            { industry: "Hospitality", Consumer: 355, SMB: 907, "Middle Market": 3724, Enterprise: 9448 },
+            { industry: "Industrial", Consumer: null, SMB: 542, "Middle Market": 3614, Enterprise: 7290 },
+            { industry: "Insurance", Consumer: 519, SMB: 1280, "Middle Market": 4446, Enterprise: 11228 },
+            { industry: "Legaltech", Consumer: 161, SMB: 299, "Middle Market": 2630, Enterprise: 6441 },
+            { industry: "Oil & Gas", Consumer: 91, SMB: 355, "Middle Market": 3401, Enterprise: 7885 },
+            { industry: "Medtech", Consumer: 320, SMB: 921, "Middle Market": 4326, Enterprise: 11021 },
+            { industry: "Project Management", Consumer: 227, SMB: 891, "Middle Market": 2925, Enterprise: 7430 },
+            { industry: "Proptech", Consumer: 184, SMB: 518, "Middle Market": 3004, Enterprise: 8650 },
+            { industry: "Retail", Consumer: 76, SMB: 303, "Middle Market": 2980, Enterprise: 9018 },
+            { industry: "Security", Consumer: 174, SMB: 805, "Middle Market": 5287, Enterprise: 10221 },
+            { industry: "Staffing & HR", Consumer: null, SMB: 410, "Middle Market": 1912, Enterprise: 6754 },
+            { industry: "Telecommunications", Consumer: 91, SMB: 694, "Middle Market": 5266, Enterprise: 10980 },
+            { industry: "Transportation & Logistics", Consumer: 175, SMB: 483, "Middle Market": 3920, Enterprise: 8005 }
+        ];
+
+        let selectedIndustries = new Set(cacData.map(d => d.industry));
+
+        const ltvInput = document.getElementById('ltv');
+        const companySizeSelect = document.getElementById('companySize');
+        const hideNACheckbox = document.getElementById('hideNA');
+        const sortByCACheckbox = document.getElementById('sortByCAC');
+        const thresholdValue = document.getElementById('thresholdValue');
+        const tableBody = document.getElementById('tableBody');
+        const selectionCount = document.getElementById('selectionCount');
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+
+        function calculateThreshold(ltv) {
+            return ltv / 3;
+        }
+
+        function getStatus(cac, threshold) {
+            if (cac === null) return 'na';
+            if (cac <= threshold) return 'green';
+            if (cac <= threshold * 1.25) return 'amber';
+            return 'red';
+        }
+
+        function getStatusLabel(status) {
+            switch(status) {
+                case 'green': return 'Prioritise';
+                case 'amber': return 'Test selectively';
+                case 'red': return 'Avoid / Organic only';
+                case 'na': return 'N/A';
+                default: return '';
+            }
+        }
+
+        function formatCurrency(value) {
+            if (value === null) return 'N/A';
+            return '$' + value.toLocaleString();
+        }
+
+        function formatRatio(ltv, cac) {
+            if (cac === null || cac === 0) return 'N/A';
+            const ratio = ltv / cac;
+            return ratio.toFixed(1) + ':1';
+        }
+
+        function toggleIndustry(industry) {
+            if (selectedIndustries.has(industry)) {
+                selectedIndustries.delete(industry);
+            } else {
+                selectedIndustries.add(industry);
+            }
+            renderTable();
+            updateSelectionCount();
+        }
+
+        function toggleSelectAll() {
+            const companySize = companySizeSelect.value;
+            const hideNA = hideNACheckbox.checked;
+            
+            let visibleIndustries = cacData;
+            if (hideNA) {
+                visibleIndustries = cacData.filter(row => row[companySize] !== null);
+            }
+            
+            const allSelected = visibleIndustries.every(row => selectedIndustries.has(row.industry));
+            
+            if (allSelected) {
+                visibleIndustries.forEach(row => selectedIndustries.delete(row.industry));
+            } else {
+                visibleIndustries.forEach(row => selectedIndustries.add(row.industry));
+            }
+            
+            renderTable();
+            updateSelectionCount();
+        }
+
+        function updateSelectionCount() {
+            const companySize = companySizeSelect.value;
+            const hideNA = hideNACheckbox.checked;
+            
+            let visibleIndustries = cacData;
+            if (hideNA) {
+                visibleIndustries = cacData.filter(row => row[companySize] !== null);
+            }
+            
+            const selectedVisible = visibleIndustries.filter(row => selectedIndustries.has(row.industry)).length;
+            selectionCount.textContent = selectedVisible + ' selected';
+            
+            const allSelected = visibleIndustries.every(row => selectedIndustries.has(row.industry));
+            selectAllCheckbox.checked = allSelected && visibleIndustries.length > 0;
+            
+            const toggleBtn = document.querySelector('.btn-secondary');
+            toggleBtn.textContent = allSelected ? 'Deselect All' : 'Select All';
+        }
+
+        function renderTable() {
+            const ltv = parseFloat(ltvInput.value) || 0;
+            const companySize = companySizeSelect.value;
+            const hideNA = hideNACheckbox.checked;
+            const sortByCAC = sortByCACheckbox.checked;
+            const threshold = calculateThreshold(ltv);
+
+            thresholdValue.textContent = formatCurrency(Math.round(threshold));
+
+            let data = cacData.map(row => ({
+                industry: row.industry,
+                cac: row[companySize],
+                status: getStatus(row[companySize], threshold),
+                selected: selectedIndustries.has(row.industry)
+            }));
+
+            if (hideNA) {
+                data = data.filter(row => row.cac !== null);
+            }
+
+            if (sortByCAC) {
+                data.sort((a, b) => {
+                    if (a.cac === null) return 1;
+                    if (b.cac === null) return -1;
+                    return a.cac - b.cac;
+                });
+            }
+
+            tableBody.innerHTML = data.map(row => `
+                <tr class="${row.selected ? '' : 'deselected'}">
+                    <td>
+                        <input type="checkbox" class="row-checkbox" 
+                            ${row.selected ? 'checked' : ''} 
+                            onchange="toggleIndustry('${row.industry}')">
+                    </td>
+                    <td class="industry-name">${row.industry}</td>
+                    <td class="cac-value ${row.cac === null ? 'na-text' : ''}">${formatCurrency(row.cac)}</td>
+                    <td class="ratio-value ${row.cac === null ? 'na-text' : ''}">${formatRatio(ltv, row.cac)}</td>
+                    <td>
+                        <span class="status-badge status-${row.status}">${getStatusLabel(row.status)}</span>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updateSelectionCount();
+        }
+
+        function copyToClipboard() {
+            const ltv = parseFloat(ltvInput.value) || 0;
+            const companySize = companySizeSelect.value;
+            const hideNA = hideNACheckbox.checked;
+            const sortByCAC = sortByCACheckbox.checked;
+            const threshold = calculateThreshold(ltv);
+
+            let data = cacData.map(row => ({
+                industry: row.industry,
+                cac: row[companySize],
+                status: getStatus(row[companySize], threshold),
+                selected: selectedIndustries.has(row.industry)
+            }));
+
+            if (hideNA) {
+                data = data.filter(row => row.cac !== null);
+            }
+
+            if (sortByCAC) {
+                data.sort((a, b) => {
+                    if (a.cac === null) return 1;
+                    if (b.cac === null) return -1;
+                    return a.cac - b.cac;
+                });
+            }
+
+            // Filter to only selected
+            data = data.filter(row => row.selected);
+
+            if (data.length === 0) {
+                alert('No industries selected. Please select at least one industry to copy.');
+                return;
+            }
+
+            const statusColors = {
+                green: { bg: '#e6f4ea', text: '#1e7e34' },
+                amber: { bg: '#fff3e0', text: '#e65100' },
+                red: { bg: '#fce8e8', text: '#c62828' },
+                na: { bg: '#f0f0f0', text: '#888888' }
+            };
+
+            let html = `
+                <table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #f5f5f5;">
+                            <th style="border: 1px solid #ddd; padding: 10px 14px; text-align: left; font-weight: 600;">Industry</th>
+                            <th style="border: 1px solid #ddd; padding: 10px 14px; text-align: left; font-weight: 600;">CAC</th>
+                            <th style="border: 1px solid #ddd; padding: 10px 14px; text-align: left; font-weight: 600;">LTV:CAC</th>
+                            <th style="border: 1px solid #ddd; padding: 10px 14px; text-align: left; font-weight: 600;">Verdict</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach(row => {
+                const colors = statusColors[row.status];
+                html += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 10px 14px;">${row.industry}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px 14px; font-family: monospace;">${formatCurrency(row.cac)}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px 14px; font-family: monospace;">${formatRatio(ltv, row.cac)}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px 14px;">
+                            <span style="background: ${colors.bg}; color: ${colors.text}; padding: 4px 10px; border-radius: 4px; font-weight: 500; font-size: 11px;">${getStatusLabel(row.status)}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+
+            // Plain text fallback
+            let plainText = 'Industry\tCAC\tLTV:CAC\tVerdict\n';
+            data.forEach(row => {
+                plainText += `${row.industry}\t${formatCurrency(row.cac)}\t${formatRatio(ltv, row.cac)}\t${getStatusLabel(row.status)}\n`;
+            });
+
+            // Copy both HTML and plain text
+            const blob = new Blob([html], { type: 'text/html' });
+            const blobPlain = new Blob([plainText], { type: 'text/plain' });
+            
+            const clipboardItem = new ClipboardItem({
+                'text/html': blob,
+                'text/plain': blobPlain
+            });
+
+            navigator.clipboard.write([clipboardItem]).then(() => {
+                const btn = document.querySelector('.btn:not(.btn-secondary)');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                // Fallback for browsers that don't support ClipboardItem
+                navigator.clipboard.writeText(plainText).then(() => {
+                    const btn = document.querySelector('.btn:not(.btn-secondary)');
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied (plain text)';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                });
+            });
+        }
+
+        // Event listeners
+        ltvInput.addEventListener('input', renderTable);
+        companySizeSelect.addEventListener('change', renderTable);
+        hideNACheckbox.addEventListener('change', renderTable);
+        sortByCACheckbox.addEventListener('change', renderTable);
+
+        // Initial render
+        renderTable();
+    </script>
+</body>
+</html>
